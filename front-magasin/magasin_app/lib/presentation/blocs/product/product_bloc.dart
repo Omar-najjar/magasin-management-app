@@ -15,55 +15,64 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         final products = await ApiService.getProducts();
         emit(ProductLoaded(products));
       } catch (e) {
-        emit(ProductError("Erreur chargement produits"));
+        emit(ProductError(e.toString()));
       }
     });
 
     on<AddProductEvent>((event, emit) async {
       try {
-        await ApiService.addProduct(event.product);
-
-        // Reload produits
+        print('[ProductBloc] Adding product: ${event.product}');
+        final response = await ApiService.addProduct(event.product);
+        print('[ProductBloc] Add response: $response');
+        
+        // Reload produits après ajout
         final products = await ApiService.getProducts();
         emit(ProductLoaded(products));
+        emit(ProductSuccess('Produit ajouté avec succès'));
 
       } catch (e) {
-        emit(ProductError("Erreur ajout produit"));
+        print('[ProductBloc] Add error: $e');
+        emit(ProductError(e.toString()));
       }
     });
 
-    // UPDATE
-on<UpdateProductEvent>((event, emit) async {
-  try {
-    await ApiService.updateProduct(event.id, event.product);
-    final products = await ApiService.getProducts();
-    emit(ProductLoaded(products));
-  } catch (e) {
-    emit(ProductError("Erreur update"));
-  }
-});
+    on<UpdateProductEvent>((event, emit) async {
+      try {
+        await ApiService.updateProduct(event.id, event.product);
+        final products = await ApiService.getProducts();
+        emit(ProductLoaded(products));
+        emit(ProductSuccess('Produit modifié avec succès'));
+      } catch (e) {
+        emit(ProductError(e.toString()));
+      }
+    });
 
-// DELETE
-on<DeleteProductEvent>((event, emit) async {
-  try {
-    await ApiService.deleteProduct(event.id);
-    final products = await ApiService.getProducts();
-    emit(ProductLoaded(products));
-  } catch (e) {
-    emit(ProductError("Erreur suppression"));
-  }
-});
+    on<DeleteProductEvent>((event, emit) async {
+      try {
+        await ApiService.deleteProduct(event.id);
+        final products = await ApiService.getProducts();
+        emit(ProductLoaded(products));
+        emit(ProductSuccess('Produit supprimé avec succès'));
+      } catch (e) {
+        emit(ProductError(e.toString()));
+      }
+    });
 
-// SEARCH
-on<SearchProductEvent>((event, emit) async {
-  emit(ProductLoading());
+    on<SearchProductEvent>((event, emit) async {
+      if (event.query.isEmpty) {
+        // Si recherche vide, recharger tous les produits
+        add(LoadProducts());
+        return;
+      }
 
-  try {
-    final products = await ApiService.searchProducts(event.query);
-    emit(ProductLoaded(products));
-  } catch (e) {
-    emit(ProductError("Erreur recherche"));
-  }
-});
+      emit(ProductLoading());
+
+      try {
+        final products = await ApiService.searchProducts(event.query);
+        emit(ProductLoaded(products));
+      } catch (e) {
+        emit(ProductError(e.toString()));
+      }
+    });
   }
 }

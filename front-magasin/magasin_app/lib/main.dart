@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/utils/app_theme.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/pages/login_page.dart';
 import 'presentation/pages/home_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -40,11 +43,14 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (context) => AuthBloc()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Magasin App',
+        theme: AppTheme.lightTheme(),
         home: _isLoading
-            ? Scaffold(
+            ? const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               )
-            : (_isLoggedIn == true ? HomePage() : LoginPage()),
+            : (_isLoggedIn == true ? const HomePage() : LoginPage()),
       ),
     );
   }
